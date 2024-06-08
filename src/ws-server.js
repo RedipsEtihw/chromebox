@@ -507,16 +507,19 @@
 
     server.on('connection', socket => {
       sockets.add(socket);
+      DEBUG.debugWS && console.log(`Server connection`);
       socket.on('close', () => sockets.delete(socket));
     });
 
     server.on('upgrade', (req, socket, head) => {
+      DEBUG.debugWS && console.log(`WS upgrade`);
       sockets.add(socket);
       socket.on('close', () => sockets.delete(socket));
       socket.setNoDelay(true);
     });
 
     wss.on('connection', async (ws, req) => {
+      DEBUG.debugWS && console.log(`WSS connection`);
       const connectionId = Math.random().toString(36) + (+ new Date).toString(36);
       const url = new URL(req.url, `${req.protocol}://${req.headers.host}`);
       const qp = url.searchParams.get('session_token');

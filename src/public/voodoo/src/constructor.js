@@ -725,11 +725,13 @@
                           if ( ws?.readyState < 2 ) return;
                           DEBUG.debugAudio && console.log(`Creating websocket...`);
                           ws = new WebSocket(wsUri);
+                          DEBUG.debugWS && console.log(`Request audio ws`);
                           DEBUG.debugAudio && console.log('Create ws');
                           DEBUG.debugAudio && console.log(`Created`, ws);
                           ws.binaryType = 'arraybuffer';
 
                           ws.addEventListener('open', msg => {
+                            DEBUG.debugWS && console.log(`Audio ws open`);
                             DEBUG.debugAudio && console.log('ws open');
                             DEBUG.debugAudio && console.log(`Audio websocket connected`, msg);
                             state.audioConnected = true;
@@ -741,6 +743,7 @@
                           });
 
                           ws.addEventListener('close', msg => {
+                            DEBUG.debugWS && console.log(`Audio ws closed`);
                             DEBUG.debugAudio && console.log(`Audio websocket closing`, msg); 
                             state.audioConnected = false;
                             audioReconnectMs = AUDIO_RECONNECT_MS;
@@ -1002,7 +1005,9 @@
               aif.addEventListener('load', () => {
                 DEBUG.debugAudio && console.log(`Iframe 'load' event. But this provides no information on whether Audio login is successful.`);
               });
-              aif.src = src;
+              if ( !DEBUG.debugWS ) {
+                aif.src = src;
+              }
               DEBUG.debugAudio && console.log(`Initial connect attempt started`);
             }
           } catch(e) {

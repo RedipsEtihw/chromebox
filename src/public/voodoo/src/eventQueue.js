@@ -68,6 +68,7 @@
 
   class Privates {
     constructor(publics, state, sessionToken) {
+      console.log(`Construct privates`, this, (new Error).stack);
       this.willCollectBufferedFrame = null;
       this.websockets = new Map();
       this.publics = publics;
@@ -431,6 +432,7 @@
       const privates = this;
       let resolve;
       const promise = new Promise(res => resolve = res);
+      DEBUG.debugWS && console.log(`connect check`, url, this.websockets);
       if ( connecting ) {
         DEBUG.debugCnx && console.log(`Already connecting...`);
         await untilTrue(() => this.websockets.has(url));
@@ -450,13 +452,17 @@
           let AssureOpenTask;
           try {
             socket = new WebSocket(wsUrl);
+            DEBUG.debugWS && console.log(`Request main websocket`, (new Error).stack);
             DEBUG.cnx && console.info('Creating socket');
             socket.binaryType = "blob";
             connecting = socket;
             socket.onopen = () => {
               privates.socket = socket;
+              DEBUG.debugWS && console.log(`Main websocket open`);
               DEBUG.cnx && console.log(`WebSocket open`);
               Senders = {so,sa};
+              this.websockets.set(url, Senders);
+              DEBUG.debugWS && console.log(`WebSocket open`, url, this.websockets);
               const receivesFrames = !this.publics.state.useViewFrame;
               so({messageId,zombie:{events: [],receivesFrames}});
               messageId++;
@@ -982,6 +988,7 @@
               }
             };
             socket.onclose = async (e) => {
+              DEBUG.debugWS && console.log(`Main websocket close`, e);
               DEBUG.cnx && console.log(`WebSocket closed. Server going down?`);
               this.websockets.delete(url);
               privates.socket = null;
@@ -1008,14 +1015,16 @@
               resolve(false);
             };
             socket.onerror = async (e) => {
+              DEBUG.debugWS && console.log(`Main websocket error`, e);
               socket.onerror = null;
               (DEBUG.cnx || DEBUG.debugConnect) && console.warn("WebSocket error", e);
               socket.close();
             };
           } catch(e) {
-            this.websockets.delete(url);
+            //this.websockets.delete(url);
             this.senders = null;
             connecting = false;
+            DEBUG.debugWS && console.log(`Some websocket error?`, e);
             DEBUG.cnx && console.log(`WebSocket open error. Server down?`);
             resolve(false);
           } 
@@ -1524,6 +1533,7 @@
   }*/
 
   function onLine() {
+    return true;
     return Connectivity.checker.status == 'online';
   }
 
